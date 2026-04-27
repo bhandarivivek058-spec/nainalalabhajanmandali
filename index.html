@@ -19,19 +19,17 @@
         .member-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
         .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; font-size: 14px; }
         .btn-add { background: #28a745; } .btn-save { background: #007bff; } .btn-logout { background: #dc3545; position: absolute; right: 10px; top: 10px; }
+        .btn-edit { background: #ffc107; color: black; }
         .btn-media { background: #6f42c1; }
         #gallery-display { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
         #gallery-display img, #gallery-display video { width: 140px; border-radius: 8px; border: 2px solid var(--gold); }
-        audio { width: 100%; margin-top: 5px; }
         .pdf-item { background: #f9f9f9; padding: 8px; margin-bottom: 5px; border-left: 4px solid var(--red); text-align: left; }
     </style>
 </head>
 <body>
 
 <div id="login-screen" style="padding: 100px 20px; background: var(--orange); color: white; min-height: 100vh;">
-    <div class="profile-circle">
-        <img id="grandma-login" src="https://via.placeholder.com/150">
-    </div>
+    <div class="profile-circle"><img id="grandma-login" src="https://via.placeholder.com/150"></div>
     <h2>नैनकला भजन मण्डली</h2>
     <input type="text" id="username" placeholder="Username" style="padding:10px; margin:5px;"><br>
     <input type="password" id="password" placeholder="Password" style="padding:10px; margin:5px;"><br>
@@ -46,23 +44,25 @@
         </div>
         <input type="file" id="grandma-upload" class="hidden" onchange="changeGrandmaPhoto(this)">
         <h1>नैनकला भजन मण्डली</h1>
-        <p>गोदावरी-१, अत्तरिया, कैलाली (२०८३)</p>
+        <p>गोदावरी-१, अत्तरिया, कैलाली</p>
     </header>
 
-    <div id="admin-panel" class="hidden" style="background:#fff3f3; padding:10px; border:2px dashed red; margin:10px;">
-        <p><strong>Admin Panel:</strong> पदाधिकारी थप्न वा हजुरआमाको फोटो फेर्न मिल्नेछ।</p>
-        <button class="btn btn-add" onclick="addMember('leader')">पदाधिकारी +</button>
-        <button class="btn btn-add" onclick="addMember('member')">सदस्य +</button>
-        <button id="add-rule-btn" class="btn btn-add" onclick="addNewRuleLine()">नयाँ नियम +</button>
-        <button id="pdf-btn" class="btn btn-add" onclick="document.getElementById('pdf-in').click()">PDF थप्नुहोस्</button>
+    <div id="admin-controls" class="hidden" style="background:#fff3f3; padding:10px; border:2px dashed red; margin:10px;">
+        <button id="edit-mode-btn" class="btn btn-edit" onclick="toggleEditMode(true)">Edit Content</button>
+        <button id="save-mode-btn" class="btn btn-save hidden" onclick="saveAllToPublic()">Save All Changes</button>
+        <div id="edit-options" class="hidden" style="margin-top:10px;">
+            <button class="btn btn-add" onclick="addMember('leader')">पदाधिकारी +</button>
+            <button class="btn btn-add" onclick="addMember('member')">सदस्य +</button>
+            <button class="btn btn-add" onclick="addNewRuleLine()">नियम +</button>
+            <button class="btn btn-add" onclick="document.getElementById('pdf-in').click()">PDF +</button>
+            <button class="btn btn-edit" onclick="changeCredentials()">ID/PW फेर्नुहोस्</button>
+        </div>
         <input type="file" id="pdf-in" accept="application/pdf" class="hidden" onchange="upPdf(this)">
     </div>
 
     <section>
         <div class="section-title">आचारसंहिता</div>
-        <div id="rules-list">
-            <div class="rule-row">१. <input type="text" class="rule-input" placeholder="यहाँ नियम लेख्नुहोस्..." onchange="saveAll()"></div>
-        </div>
+        <div id="rules-list"></div>
     </section>
 
     <section>
@@ -77,16 +77,13 @@
     </section>
 
     <section>
-        <div class="section-title">मिडिया ग्यालरी (सबैले थप्न मिल्ने)</div>
+        <div class="section-title">मिडिया ग्यालरी (सबैका लागि)</div>
         <div style="margin-bottom: 15px;">
             <button class="btn btn-media" onclick="document.getElementById('img-in').click()">फोटो +</button>
             <button class="btn btn-media" onclick="document.getElementById('vid-in').click()">भिडियो +</button>
-            <button class="btn btn-media" onclick="document.getElementById('aud-in').click()">अडियो +</button>
         </div>
         <input type="file" id="img-in" accept="image/*" class="hidden" onchange="upMedia(this, 'img')">
         <input type="file" id="vid-in" accept="video/*" class="hidden" onchange="upMedia(this, 'vid')">
-        <input type="file" id="aud-in" accept="audio/*" class="hidden" onchange="upMedia(this, 'aud')">
-        
         <div id="gallery-display"></div>
     </section>
 </div>
@@ -94,25 +91,57 @@
 <script>
     const storage = localStorage;
 
+    // लगइन क्रेडिन्सियलहरू (सुरुमा डिफल्ट, पछि एडमिनले फेर्न मिल्ने)
+    function getCreds() {
+        return JSON.parse(storage.getItem('siteCreds')) || {
+            adminU: 'admin', adminP: 'admin123',
+            userU: 'user', userP: 'user123'
+        };
+    }
+
     function checkLogin() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
-        if(u==='admin' && p==='admin123') { storage.setItem('role', 'admin'); location.reload(); }
-        else if(u==='user' && p==='user123') { storage.setItem('role', 'user'); location.reload(); }
-        else alert("मिलेन!");
+        const c = getCreds();
+        if(u === c.adminU && p === c.adminP) { storage.setItem('role', 'admin'); location.reload(); }
+        else if(u === c.userU && p === c.userP) { storage.setItem('role', 'user'); location.reload(); }
+        else alert("Username वा Password मिलेन!");
     }
 
     function logout() { storage.removeItem('role'); location.reload(); }
 
+    function toggleEditMode(enable) {
+        if(enable) {
+            document.getElementById('edit-mode-btn').classList.add('hidden');
+            document.getElementById('save-mode-btn').classList.remove('hidden');
+            document.getElementById('edit-options').classList.remove('hidden');
+            alert("अब तपाईँले फोटो, पदाधिकारी र नियमहरू फेर्न सक्नुहुन्छ। काम सकिएपछि 'Save' थिच्नुहोस्।");
+        }
+    }
+
     function changeGrandmaPhoto(input) {
+        if (localStorage.getItem('role') !== 'admin') return;
         if (input.files && input.files[0]) {
             const r = new FileReader();
             r.onload = e => {
-                storage.setItem('grandmaImg', e.target.result);
                 document.getElementById('grandma-main').src = e.target.result;
                 document.getElementById('grandma-login').src = e.target.result;
             };
             r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function changeCredentials() {
+        const c = getCreds();
+        const newAdminU = prompt("नयाँ Admin Username:", c.adminU);
+        const newAdminP = prompt("नयाँ Admin Password:", c.adminP);
+        const newUserU = prompt("नयाँ User Username:", c.userU);
+        const newUserP = prompt("नयाँ User Password:", c.userP);
+        if(newAdminU && newAdminP && newUserU && newUserP) {
+            storage.setItem('siteCreds', JSON.stringify({
+                adminU: newAdminU, adminP: newAdminP, userU: newUserU, userP: newUserP
+            }));
+            alert("Login विवरण सफलतापूर्वक फेरियो!");
         }
     }
 
@@ -126,7 +155,6 @@
             r.onload = e => {
                 const html = `<div class="member-card"><img src="${e.target.result}"><div><strong>${name}</strong><br>${post}</div></div>`;
                 document.getElementById(type + '-list').insertAdjacentHTML('beforeend', html);
-                saveAll();
             };
             r.readAsDataURL(this.files[0]);
         };
@@ -134,23 +162,20 @@
     }
 
     function addNewRuleLine() {
-        const div = document.createElement('div');
-        div.className = "rule-row";
-        div.innerHTML = `✔️ <input type="text" class="rule-input" onchange="saveAll()">`;
-        document.getElementById('rules-list').appendChild(div);
+        const val = prompt("नियम लेख्नुहोस्:");
+        if(val) {
+            const div = `<div class="rule-row">✔️ ${val}</div>`;
+            document.getElementById('rules-list').insertAdjacentHTML('beforeend', div);
+        }
     }
 
     function upMedia(input, type) {
         if (input.files && input.files[0]) {
             const r = new FileReader();
             r.onload = e => {
-                let html = "";
-                if(type === 'img') html = `<img src="${e.target.result}">`;
-                if(type === 'vid') html = `<video src="${e.target.result}" controls></video>`;
-                if(type === 'aud') html = `<div style="width:100%"><audio src="${e.target.result}" controls></audio></div>`;
-                
+                let html = type === 'img' ? `<img src="${e.target.result}">` : `<video src="${e.target.result}" controls></video>`;
                 document.getElementById('gallery-display').insertAdjacentHTML('beforeend', html);
-                saveAll();
+                savePublicData(); // मिडिया चाहिँ सिधै सेभ हुने बनाइएको छ
             };
             r.readAsDataURL(input.files[0]);
         }
@@ -160,45 +185,52 @@
         if (input.files[0]) {
             const html = `<div class="pdf-item">📄 ${input.files[0].name}</div>`;
             document.getElementById('pdf-list').insertAdjacentHTML('beforeend', html);
-            saveAll();
         }
     }
 
-    function saveAll() {
-        storage.setItem('leaderHTML', document.getElementById('leader-list').innerHTML);
-        storage.setItem('memberHTML', document.getElementById('member-list').innerHTML);
-        storage.setItem('pdfHTML', document.getElementById('pdf-list').innerHTML);
-        storage.setItem('mediaHTML', document.getElementById('gallery-display').innerHTML);
-        const rules = Array.from(document.querySelectorAll('.rule-input')).map(i => i.value);
-        storage.setItem('rulesJSON', JSON.stringify(rules));
+    // एडमिनले 'Save' थिचेपछि मात्र यो फङ्सन चल्छ
+    function saveAllToPublic() {
+        savePublicData();
+        alert("सबै परिवर्तनहरू सेभ भए! अब User ले नयाँ कुरा देख्नेछन्।");
+        location.reload();
+    }
+
+    function savePublicData() {
+        storage.setItem('p_grandma', document.getElementById('grandma-main').src);
+        storage.setItem('p_leaders', document.getElementById('leader-list').innerHTML);
+        storage.setItem('p_members', document.getElementById('member-list').innerHTML);
+        storage.setItem('p_rules', document.getElementById('rules-list').innerHTML);
+        storage.setItem('p_pdf', document.getElementById('pdf-list').innerHTML);
+        storage.setItem('p_gallery', document.getElementById('gallery-display').innerHTML);
     }
 
     window.onload = function() {
         const role = storage.getItem('role');
-        const gImg = storage.getItem('grandmaImg');
+        // पब्लिक डाटा लोड गर्ने (जुन एडमिनले सेभ गरेको छ)
+        const gImg = storage.getItem('p_grandma');
         if(gImg) {
             document.getElementById('grandma-login').src = gImg;
             document.getElementById('grandma-main').src = gImg;
         }
+        document.getElementById('leader-list').innerHTML = storage.getItem('p_leaders') || "";
+        document.getElementById('member-list').innerHTML = storage.getItem('p_members') || "";
+        document.getElementById('rules-list').innerHTML = storage.getItem('p_rules') || "<li>नियमहरू उपलब्ध छैनन्।</li>";
+        document.getElementById('pdf-list').innerHTML = storage.getItem('p_pdf') || "";
+        document.getElementById('gallery-display').innerHTML = storage.getItem('p_gallery') || "";
 
         if(role) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
-            if(role==='admin') {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('main-grandma-div').onclick = () => document.getElementById('grandma-upload').click();
-            }
-            // Load Data
-            document.getElementById('leader-list').innerHTML = storage.getItem('leaderHTML') || "";
-            document.getElementById('member-list').innerHTML = storage.getItem('memberHTML') || "";
-            document.getElementById('pdf-list').innerHTML = storage.getItem('pdfHTML') || "";
-            document.getElementById('gallery-display').innerHTML = storage.getItem('mediaHTML') || "";
-            const rules = JSON.parse(storage.getItem('rulesJSON') || "[]");
-            if(rules.length > 0) {
-                document.getElementById('rules-list').innerHTML = rules.map(r => `<div class="rule-row">✔️ <input type="text" class="rule-input" value="${r}" onchange="saveAll()"></div>`).join('');
+            if(role === 'admin') {
+                document.getElementById('admin-controls').classList.remove('hidden');
+                document.getElementById('main-grandma-div').onclick = () => {
+                    if(!document.getElementById('edit-options').classList.contains('hidden')) {
+                        document.getElementById('grandma-upload').click();
+                    }
+                };
             }
         }
-    }
+    };
 </script>
 </body>
 </html>
