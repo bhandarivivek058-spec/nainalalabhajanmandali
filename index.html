@@ -1,72 +1,131 @@
-html lang="ne">
+<!DOCTYPE html>
+<html lang="ne">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>नैनाकला भजन मण्डली</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <title>नैनकला भजन मण्डली</title>
     <style>
         :root { --orange: #FF9933; --red: #FF0000; --gold: #FFD700; --bg: #FFF5E1; }
-        body { font-family: 'Arial', 'Sans-Serif', sans-serif; background-color: var(--bg); margin: 0; text-align: center; }
+        body { font-family: 'Arial', sans-serif; background-color: var(--bg); margin: 0; text-align: center; }
         .hidden { display: none; }
-        .symbol { font-size: 24px; color: var(--red); padding: 10px; }
-        header { background: var(--orange); color: white; padding: 20px; border-bottom: 5px solid var(--gold); }
-        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #ccc; cursor: pointer; }
+        header { background: var(--orange); color: white; padding: 20px; border-bottom: 5px solid var(--gold); position: relative; }
+        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
         .profile-circle img { width: 100%; height: 100%; object-fit: cover; }
         section { background: white; margin: 15px auto; padding: 20px; width: 90%; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .section-title { background: var(--gold); padding: 8px; margin-bottom: 15px; font-weight: bold; border-radius: 5px; }
-        .rule-row { display: flex; align-items: center; margin-bottom: 8px; text-align: left; }
-        .rule-input { width: 85%; padding: 5px; border: none; font-size: 16px; outline: none; }
-        .member-card { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; position: relative; }
-        #member-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; }
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; }
+        .btn-save { background: #007bff; } .btn-logout { background: #dc3545; position: absolute; right: 10px; top: 10px; }
         .btn-add { background: #28a745; }
-        .btn-save { background: #007bff; }
-        .pdf-item { background: #f9f9f9; padding: 8px; margin-bottom: 5px; border-left: 4px solid var(--red); text-align: left; }
+        #gallery-grid img { width: 140px; height: 140px; object-fit: cover; margin: 5px; border-radius: 8px; border: 2px solid var(--gold); }
+        .rule-item { text-align: left; padding: 5px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-<div id="login-screen" style="padding:100px; background: var(--orange); color: white;">
-    <div class="symbol">ॐ 卐 🔱</div>
-    <h2>लगइन गर्नुहोस्</h2>
-    <input type="text" id="username" placeholder="Username" style="padding:10px; margin:5px;"><br>
-    <input type="password" id="password" placeholder="Password" style="padding:10px; margin:5px;"><br>
-    <button class="btn btn-save" onclick="checkLogin()">भित्र जानुहोस्</button>
+<div id="login-screen" style="padding-top: 50px;">
+    <div class="profile-circle">
+        <img id="grandma-photo" src="https://via.placeholder.com/150" alt="Hajurama">
+    </div>
+    <h2>नैनकला भजन मण्डली</h2>
+    <div style="background: white; padding: 20px; width: 80%; margin: auto; border-radius: 10px;">
+        <input type="text" id="username" placeholder="Username" style="width: 90%; padding: 10px; margin: 5px;"><br>
+        <input type="password" id="password" placeholder="Password" style="width: 90%; padding: 10px; margin: 5px;"><br>
+        <button class="btn btn-save" onclick="checkLogin()">भित्र जानुहोस्</button>
+    </div>
 </div>
 
 <div id="main-content" class="hidden">
-    <div class="symbol">ॐ 卐 🔱 🪔 🔔</div>
     <header>
-        <div class="profile-circle" onclick="document.getElementById('gm-in').click()">
-            <img id="gm-img" src="https://via.placeholder.com/150">
+        <button class="btn btn-logout" onclick="logout()">Logout</button>
+        <div class="profile-circle">
+            <img src="https://via.placeholder.com/150">
         </div>
-        <input type="file" id="gm-in" class="hidden" onchange="upImg(this, 'gm-img')">
-        <h1>नैनाकला भजन मण्डली</h1>
-        <p>गोदावरी-१, अत्तरिया, कैलाली (२०८३)</p>
+        <h1>नैनकला भजन मण्डली</h1>
+        <p>गोदावरी-१, अत्तरिया, कैलाली</p>
     </header>
 
-    <div id="admin-panel" class="hidden" style="background:white; padding:10px; border:2px solid red;">
-        <button class="btn btn-add" onclick="addP('leader')">पदाधिकारी +</button>
-        <button class="btn btn-add" onclick="addP('member')">सदस्य +</button>
-        <button class="btn btn-save" onclick="alert('सुरक्षित गरियो!')">Save All</button>
+    <div id="admin-panel" class="hidden" style="background:#ffecec; padding:10px; border:2px dashed red;">
+        <h3>Admin Panel</h3>
+        <button class="btn btn-add" onclick="addRule()">नयाँ नियम +</button>
+        <input type="file" id="media-in" accept="image/*" class="hidden" onchange="uploadPhoto(this)">
+        <button class="btn btn-save" onclick="document.getElementById('media-in').click()">फोटो थप्नुहोस्</button>
     </div>
 
     <section>
         <div class="section-title">आचारसंहिता</div>
-        <div id="rules">
-            <div class="rule-row">१. <input type="text" id="rule-1" class="rule-input" onkeydown="addR(event, 1)" placeholder="यहाँ लेख्नुहोस्..."></div>
-        </div>
+        <div id="rules-display"></div>
     </section>
 
     <section>
-        <div class="section-title">कार्यक्रमहरू (PDF)</div>
-        <div id="pdf-list"></div>
-        <button class="btn btn-add" onclick="document.getElementById('pdf-in').click()">PDF थप्नुहोस्</button>
-        <input type="file" id="pdf-in" accept="application/pdf" class="hidden" onchange="addPdf(this)">
+        <div class="section-title">मिडिया ग्यालरी</div>
+        <div id="gallery-grid"></div>
     </section>
+</div>
 
-    <section>
-        <div class="section-title">पदाधिकारी तथा सदस्य</div>
-        <div id="leader-list"></div>
-        <div id="member-list"></div>
-    </section>
+<script>
+    // लगइन फङ्सन
+    function checkLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        if(u === 'admin' && p === 'admin123') {
+            localStorage.setItem('userRole', 'admin');
+            location.reload();
+        } else if(u === 'user' && p === 'user123') {
+            localStorage.setItem('userRole', 'user');
+            location.reload();
+        } else {
+            alert("मिलेन!");
+        }
+    }
+
+    // लगआउट फङ्सन
+    function logout() {
+        localStorage.removeItem('userRole');
+        location.reload();
+    }
+
+    // फोटो अपलोड र सेभ (LocalStorage प्रयोग गरेर)
+    function uploadPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgTag = `<img src="${e.target.result}">`;
+                document.getElementById('gallery-grid').insertAdjacentHTML('beforeend', imgTag);
+                
+                // ब्राउजरमा सेभ गर्ने
+                let savedImgs = localStorage.getItem('galleryData') || "";
+                localStorage.setItem('galleryData', savedImgs + imgTag);
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // नियम थप्ने र सेभ गर्ने
+    function addRule() {
+        const val = prompt("नयाँ नियम लेख्नुहोस्:");
+        if(val) {
+            const ruleTag = `<div class="rule-item">🔹 ${val}</div>`;
+            document.getElementById('rules-display').insertAdjacentHTML('beforeend', ruleTag);
+            
+            let savedRules = localStorage.getItem('rulesData') || "";
+            localStorage.setItem('rulesData', savedRules + ruleTag);
+        }
+    }
+
+    // पेज लोड हुँदा डाटा देखाउने
+    window.onload = function() {
+        const role = localStorage.getItem('userRole');
+        if(role) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').classList.remove('hidden');
+            if(role === 'admin') document.getElementById('admin-panel').classList.remove('hidden');
+            
+            // सेभ भएको डाटा लोड गर्ने
+            document.getElementById('gallery-grid').innerHTML = localStorage.getItem('galleryData') || "";
+            document.getElementById('rules-display').innerHTML = localStorage.getItem('rulesData') || "नियमहरू उपलब्ध छैनन्।";
+        }
+    }
+</script>
+
+</body>
+</html>
