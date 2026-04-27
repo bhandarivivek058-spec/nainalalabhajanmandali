@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="ne">
+html lang="ne">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,82 +70,3 @@
         <div id="leader-list"></div>
         <div id="member-list"></div>
     </section>
-
-    <section>
-        <div class="section-title">मिडिया</div>
-        <div style="display:flex; justify-content: space-around;">
-            <button onclick="document.getElementById('f-in').click()">फोटो</button>
-            <button onclick="document.getElementById('v-in').click()">भिडियो</button>
-            <button onclick="document.getElementById('a-in').click()">अडियो</button>
-        </div>
-        <input type="file" id="f-in" multiple class="hidden">
-        <input type="file" id="v-in" multiple class="hidden">
-        <input type="file" id="a-in" multiple class="hidden">
-    </section>
-    
-    <div class="symbol">🔱 जय श्री राम 🔱</div>
-</div>
-
-<script>
-    let role = "";
-    const nepNum = ['०','१','२','३','४','५','६','७','८','९'];
-    function toN(n) { return n.toString().split('').map(d => nepNum[d]).join(''); }
-
-    function checkLogin() {
-        const u = document.getElementById('username').value;
-        const p = document.getElementById('password').value;
-        if(u==='admin' && p==='admin123') { role="admin"; start(); }
-        else if(u==='user' && p==='user123') { role="user"; start(); }
-        else alert("मिलेन!");
-    }
-
-    function start() {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('main-content').classList.remove('hidden');
-        if(role==='admin') document.getElementById('admin-panel').classList.remove('hidden');
-    }
-
-    function upImg(input, id) {
-        if (input.files && input.files[0]) {
-            const r = new FileReader();
-            r.onload = e => document.getElementById(id).src = e.target.result;
-            r.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function addR(e, c) {
-        if (e.key === 'Enter' && role === 'admin') {
-            const next = c + 1;
-            const d = document.createElement('div');
-            d.className = "rule-row";
-            d.innerHTML = `${toN(next)}. <input type="text" id="rule-${next}" class="rule-input" onkeydown="addR(event, ${next})">`;
-            document.getElementById('rules').appendChild(d);
-            setTimeout(() => document.getElementById(`rule-${next}`).focus(), 10);
-        }
-    }
-
-    function addP(t) {
-        const container = t === 'leader' ? 'leader-list' : 'member-list';
-        const id = 'p' + Date.now();
-        const h = `<div class="member-card">
-            <img id="${id}" src="https://via.placeholder.com/80" style="width:60px;" onclick="document.getElementById('${id}-in').click()">
-            <input type="file" id="${id}-in" class="hidden" onchange="upImg(this, '${id}')">
-            <div style="display:flex; flex-direction:column;">
-                <input type="text" placeholder="नाम">
-                <input type="text" placeholder="पद">
-            </div>
-        </div>`;
-        document.getElementById(container).insertAdjacentHTML('beforeend', h);
-    }
-
-    function addPdf(input) {
-        if (input.files[0]) {
-            const d = document.createElement('div');
-            d.className = "pdf-item";
-            d.innerText = "📄 " + input.files[0].name;
-            document.getElementById('pdf-list').appendChild(d);
-        }
-    }
-</script>
-</body>
-</html>
