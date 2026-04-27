@@ -8,27 +8,29 @@
         :root { --orange: #FF9933; --red: #FF0000; --gold: #FFD700; --bg: #FFF5E1; }
         body { font-family: 'Arial', sans-serif; background-color: var(--bg); margin: 0; text-align: center; }
         .hidden { display: none; }
-        .symbol { font-size: 24px; color: var(--red); padding: 10px; }
         header { background: var(--orange); color: white; padding: 20px; border-bottom: 5px solid var(--gold); position: relative; }
-        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #fff; }
+        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #fff; cursor: pointer; }
         .profile-circle img { width: 100%; height: 100%; object-fit: cover; }
         section { background: white; margin: 15px auto; padding: 20px; width: 90%; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .section-title { background: var(--gold); padding: 8px; margin-bottom: 15px; font-weight: bold; border-radius: 5px; }
         .rule-row { display: flex; align-items: center; margin-bottom: 8px; text-align: left; }
-        .rule-input { width: 85%; padding: 5px; border: none; font-size: 16px; outline: none; }
-        .member-card { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; }
-        #member-list, #leader-list { display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; }
+        .rule-input { width: 85%; padding: 5px; border: none; font-size: 16px; outline: none; background: transparent; }
+        .member-card { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; text-align: left; }
+        .member-card img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+        .btn { padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; font-size: 14px; }
         .btn-add { background: #28a745; } .btn-save { background: #007bff; } .btn-logout { background: #dc3545; position: absolute; right: 10px; top: 10px; }
+        .btn-media { background: #6f42c1; }
+        #gallery-display { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        #gallery-display img, #gallery-display video { width: 140px; border-radius: 8px; border: 2px solid var(--gold); }
+        audio { width: 100%; margin-top: 5px; }
         .pdf-item { background: #f9f9f9; padding: 8px; margin-bottom: 5px; border-left: 4px solid var(--red); text-align: left; }
-        #gallery-display img { width: 100px; height: 100px; object-fit: cover; margin: 5px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen" style="padding: 100px 20px; background: var(--orange); color: white; min-height: 100vh;">
     <div class="profile-circle">
-        <img id="login-grandma" src="https://via.placeholder.com/150">
+        <img id="grandma-login" src="https://via.placeholder.com/150">
     </div>
     <h2>नैनकला भजन मण्डली</h2>
     <input type="text" id="username" placeholder="Username" style="padding:10px; margin:5px;"><br>
@@ -39,31 +41,33 @@
 <div id="main-content" class="hidden">
     <header>
         <button class="btn btn-logout" onclick="logout()">Logout</button>
-        <div class="profile-circle">
-            <img src="https://via.placeholder.com/150">
+        <div class="profile-circle" id="main-grandma-div">
+            <img id="grandma-main" src="https://via.placeholder.com/150">
         </div>
+        <input type="file" id="grandma-upload" class="hidden" onchange="changeGrandmaPhoto(this)">
         <h1>नैनकला भजन मण्डली</h1>
         <p>गोदावरी-१, अत्तरिया, कैलाली (२०८३)</p>
     </header>
 
-    <div id="admin-panel" class="hidden" style="background:#fff3f3; padding:10px; border:2px solid red; margin:10px;">
-        <button class="btn btn-add" onclick="addP('leader')">पदाधिकारी +</button>
-        <button class="btn btn-add" onclick="addP('member')">सदस्य +</button>
+    <div id="admin-panel" class="hidden" style="background:#fff3f3; padding:10px; border:2px dashed red; margin:10px;">
+        <p><strong>Admin Panel:</strong> पदाधिकारी थप्न वा हजुरआमाको फोटो फेर्न मिल्नेछ।</p>
+        <button class="btn btn-add" onclick="addMember('leader')">पदाधिकारी +</button>
+        <button class="btn btn-add" onclick="addMember('member')">सदस्य +</button>
+        <button id="add-rule-btn" class="btn btn-add" onclick="addNewRuleLine()">नयाँ नियम +</button>
+        <button id="pdf-btn" class="btn btn-add" onclick="document.getElementById('pdf-in').click()">PDF थप्नुहोस्</button>
+        <input type="file" id="pdf-in" accept="application/pdf" class="hidden" onchange="upPdf(this)">
     </div>
 
     <section>
         <div class="section-title">आचारसंहिता</div>
-        <div id="rules">
-            <div class="rule-row">१. <input type="text" class="rule-input" placeholder="यहाँ नियम लेख्नुहोस्..." onchange="saveRules()"></div>
+        <div id="rules-list">
+            <div class="rule-row">१. <input type="text" class="rule-input" placeholder="यहाँ नियम लेख्नुहोस्..." onchange="saveAll()"></div>
         </div>
-        <button id="add-rule-btn" class="btn btn-add hidden" onclick="addBlankRule()">नयाँ नियम थप्नुहोस्</button>
     </section>
 
     <section>
         <div class="section-title">कार्यक्रमहरू (PDF)</div>
         <div id="pdf-list"></div>
-        <input type="file" id="pdf-in" accept="application/pdf" class="hidden" onchange="addPdf(this)">
-        <button id="pdf-btn" class="btn btn-add hidden" onclick="document.getElementById('pdf-in').click()">PDF थप्नुहोस्</button>
     </section>
 
     <section>
@@ -73,92 +77,126 @@
     </section>
 
     <section>
-        <div class="section-title">मिडिया (फोटो/भिडियो)</div>
-        <div id="gallery-display"></div>
-        <div id="media-btns" class="hidden">
-            <input type="file" id="f-in" accept="image/*" class="hidden" onchange="upMedia(this)">
-            <button class="btn btn-add" onclick="document.getElementById('f-in').click()">फोटो थप्नुहोस्</button>
+        <div class="section-title">मिडिया ग्यालरी (सबैले थप्न मिल्ने)</div>
+        <div style="margin-bottom: 15px;">
+            <button class="btn btn-media" onclick="document.getElementById('img-in').click()">फोटो +</button>
+            <button class="btn btn-media" onclick="document.getElementById('vid-in').click()">भिडियो +</button>
+            <button class="btn btn-media" onclick="document.getElementById('aud-in').click()">अडियो +</button>
         </div>
+        <input type="file" id="img-in" accept="image/*" class="hidden" onchange="upMedia(this, 'img')">
+        <input type="file" id="vid-in" accept="video/*" class="hidden" onchange="upMedia(this, 'vid')">
+        <input type="file" id="aud-in" accept="audio/*" class="hidden" onchange="upMedia(this, 'aud')">
+        
+        <div id="gallery-display"></div>
     </section>
 </div>
 
 <script>
+    const storage = localStorage;
+
     function checkLogin() {
         const u = document.getElementById('username').value;
         const p = document.getElementById('password').value;
-        if(u==='admin' && p==='admin123') { localStorage.setItem('role', 'admin'); location.reload(); }
-        else if(u==='user' && p==='user123') { localStorage.setItem('role', 'user'); location.reload(); }
+        if(u==='admin' && p==='admin123') { storage.setItem('role', 'admin'); location.reload(); }
+        else if(u==='user' && p==='user123') { storage.setItem('role', 'user'); location.reload(); }
         else alert("मिलेन!");
     }
 
-    function logout() { localStorage.removeItem('role'); location.reload(); }
+    function logout() { storage.removeItem('role'); location.reload(); }
 
-    window.onload = function() {
-        const role = localStorage.getItem('role');
-        if(role) {
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-            if(role==='admin') {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('add-rule-btn').classList.remove('hidden');
-                document.getElementById('pdf-btn').classList.remove('hidden');
-                document.getElementById('media-btns').classList.remove('hidden');
-            }
-            loadData();
-        }
-    }
-
-    function addP(t) {
-        const name = prompt("नाम लेख्नुहोस्:");
-        const post = prompt("पद लेख्नुहोस्:");
-        if(name) {
-            const html = `<div class="member-card"><div><strong>${name}</strong><br><small>${post}</small></div></div>`;
-            document.getElementById(t + '-list').insertAdjacentHTML('beforeend', html);
-            saveSection(t + '-list');
-        }
-    }
-
-    function addBlankRule() {
-        const div = document.createElement('div');
-        div.className = "rule-row";
-        div.innerHTML = `✔️ <input type="text" class="rule-input" onchange="saveRules()">`;
-        document.getElementById('rules').appendChild(div);
-    }
-
-    function upMedia(input) {
+    function changeGrandmaPhoto(input) {
         if (input.files && input.files[0]) {
             const r = new FileReader();
             r.onload = e => {
-                const img = `<img src="${e.target.result}">`;
-                document.getElementById('gallery-display').insertAdjacentHTML('beforeend', img);
-                saveSection('gallery-display');
+                storage.setItem('grandmaImg', e.target.result);
+                document.getElementById('grandma-main').src = e.target.result;
+                document.getElementById('grandma-login').src = e.target.result;
             };
             r.readAsDataURL(input.files[0]);
         }
     }
 
-    function addPdf(input) {
-        if (input.files[0]) {
-            const html = `<div class="pdf-item">📄 ${input.files[0].name}</div>`;
-            document.getElementById('pdf-list').insertAdjacentHTML('beforeend', html);
-            saveSection('pdf-list');
+    function addMember(type) {
+        const name = prompt("नाम:");
+        const post = prompt("पद:");
+        const fileIn = document.createElement('input');
+        fileIn.type = 'file'; fileIn.accept = 'image/*';
+        fileIn.onchange = function() {
+            const r = new FileReader();
+            r.onload = e => {
+                const html = `<div class="member-card"><img src="${e.target.result}"><div><strong>${name}</strong><br>${post}</div></div>`;
+                document.getElementById(type + '-list').insertAdjacentHTML('beforeend', html);
+                saveAll();
+            };
+            r.readAsDataURL(this.files[0]);
+        };
+        fileIn.click();
+    }
+
+    function addNewRuleLine() {
+        const div = document.createElement('div');
+        div.className = "rule-row";
+        div.innerHTML = `✔️ <input type="text" class="rule-input" onchange="saveAll()">`;
+        document.getElementById('rules-list').appendChild(div);
+    }
+
+    function upMedia(input, type) {
+        if (input.files && input.files[0]) {
+            const r = new FileReader();
+            r.onload = e => {
+                let html = "";
+                if(type === 'img') html = `<img src="${e.target.result}">`;
+                if(type === 'vid') html = `<video src="${e.target.result}" controls></video>`;
+                if(type === 'aud') html = `<div style="width:100%"><audio src="${e.target.result}" controls></audio></div>`;
+                
+                document.getElementById('gallery-display').insertAdjacentHTML('beforeend', html);
+                saveAll();
+            };
+            r.readAsDataURL(input.files[0]);
         }
     }
 
-    // डाटा सेभ गर्ने (LocalStorage)
-    function saveSection(id) { localStorage.setItem(id, document.getElementById(id).innerHTML); }
-    function saveRules() { 
-        const rules = Array.from(document.querySelectorAll('.rule-input')).map(i => i.value);
-        localStorage.setItem('savedRules', JSON.stringify(rules));
+    function upPdf(input) {
+        if (input.files[0]) {
+            const html = `<div class="pdf-item">📄 ${input.files[0].name}</div>`;
+            document.getElementById('pdf-list').insertAdjacentHTML('beforeend', html);
+            saveAll();
+        }
     }
 
-    function loadData() {
-        ['leader-list', 'member-list', 'pdf-list', 'gallery-display'].forEach(id => {
-            if(localStorage.getItem(id)) document.getElementById(id).innerHTML = localStorage.getItem(id);
-        });
-        const rules = JSON.parse(localStorage.getItem('savedRules') || "[]");
-        if(rules.length > 0) {
-            document.getElementById('rules').innerHTML = rules.map(r => `<div class="rule-row">✔️ <input type="text" class="rule-input" value="${r}" onchange="saveRules()"></div>`).join('');
+    function saveAll() {
+        storage.setItem('leaderHTML', document.getElementById('leader-list').innerHTML);
+        storage.setItem('memberHTML', document.getElementById('member-list').innerHTML);
+        storage.setItem('pdfHTML', document.getElementById('pdf-list').innerHTML);
+        storage.setItem('mediaHTML', document.getElementById('gallery-display').innerHTML);
+        const rules = Array.from(document.querySelectorAll('.rule-input')).map(i => i.value);
+        storage.setItem('rulesJSON', JSON.stringify(rules));
+    }
+
+    window.onload = function() {
+        const role = storage.getItem('role');
+        const gImg = storage.getItem('grandmaImg');
+        if(gImg) {
+            document.getElementById('grandma-login').src = gImg;
+            document.getElementById('grandma-main').src = gImg;
+        }
+
+        if(role) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            if(role==='admin') {
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('main-grandma-div').onclick = () => document.getElementById('grandma-upload').click();
+            }
+            // Load Data
+            document.getElementById('leader-list').innerHTML = storage.getItem('leaderHTML') || "";
+            document.getElementById('member-list').innerHTML = storage.getItem('memberHTML') || "";
+            document.getElementById('pdf-list').innerHTML = storage.getItem('pdfHTML') || "";
+            document.getElementById('gallery-display').innerHTML = storage.getItem('mediaHTML') || "";
+            const rules = JSON.parse(storage.getItem('rulesJSON') || "[]");
+            if(rules.length > 0) {
+                document.getElementById('rules-list').innerHTML = rules.map(r => `<div class="rule-row">✔️ <input type="text" class="rule-input" value="${r}" onchange="saveAll()"></div>`).join('');
+            }
         }
     }
 </script>
