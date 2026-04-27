@@ -14,7 +14,7 @@
         section { background: white; margin: 15px auto; padding: 20px; width: 90%; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .section-title { background: var(--gold); padding: 8px; margin-bottom: 15px; font-weight: bold; border-radius: 5px; }
         
-        /* नियमको नेपाली नम्बरिङ */
+        /* आचारसंहिता नेपाली नम्बरिङ */
         #rules-list { counter-reset: rule-counter; text-align: left; list-style: none; padding: 0; }
         .rule-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; gap: 10px; }
         .rule-item::before { 
@@ -33,9 +33,9 @@
         .btn-edit { background: #ffc107; color: black; } .btn-delete { background: #ff4444; font-size: 11px; padding: 5px 8px; }
         
         #gallery-display { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .media-box { position: relative; border: 2px solid var(--gold); border-radius: 8px; overflow: hidden; background: #000; }
-        .media-box img, .media-box video { width: 140px; display: block; }
-        .media-del-btn { position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 5px; font-size: 10px; }
+        .media-box { position: relative; border: 2px solid var(--gold); border-radius: 8px; overflow: hidden; background: #000; padding: 5px; }
+        .media-box img, .media-box video { width: 140px; display: block; border-radius: 5px; }
+        .media-del-btn { background: red; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px; font-size: 10px; margin-top: 5px; }
         
         .pdf-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin-bottom: 5px; border-left: 5px solid var(--red); border-radius: 4px; text-align: left; }
     </style>
@@ -62,8 +62,9 @@
     </header>
 
     <div id="admin-panel" class="hidden" style="background:#fff; border:2px solid red; margin:15px; padding:15px; border-radius:10px;">
+        <h3 style="color:red; margin-top:0;">Admin Control Panel</h3>
         <button id="edit-btn" class="btn btn-edit" onclick="toggleEdit(true)">Edit Content (परिवर्तन गर्नुहोस्)</button>
-        <button id="save-btn" class="btn btn-save hidden" onclick="confirmSave()">Save All Changes (सेभ गर्नुहोस्)</button>
+        <button id="save-btn" class="btn btn-save hidden" onclick="confirmSave()">Save All Changes (सबैका लागि सेभ गर्नुहोस्)</button>
         
         <div id="edit-tools" class="hidden" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
             <button class="btn btn-add" onclick="addRuleLine()">नयाँ नियम +</button>
@@ -93,7 +94,7 @@
 
     <section>
         <div class="section-title">मिडिया ग्यालरी</div>
-        <div style="margin-bottom:15px;">
+        <div id="media-upload-tools" class="hidden" style="margin-bottom:15px;">
             <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('img-in').click()">फोटो +</button>
             <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('vid-in').click()">भिडियो +</button>
             <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('aud-in').click()">अडियो +</button>
@@ -109,7 +110,6 @@
     const storage = localStorage;
     let isEdit = false;
 
-    // लगइन विवरण
     function getCreds() {
         return JSON.parse(storage.getItem('siteCreds')) || { adminU:'admin', adminP:'admin123', userU:'user', userP:'user123' };
     }
@@ -125,12 +125,12 @@
 
     function logout() { storage.removeItem('role'); location.reload(); }
 
-    // एडमिन मोड कन्ट्रोल
     function toggleEdit(status) {
         isEdit = status;
         document.getElementById('edit-btn').classList.add('hidden');
         document.getElementById('save-btn').classList.remove('hidden');
         document.getElementById('edit-tools').classList.remove('hidden');
+        document.getElementById('media-upload-tools').classList.remove('hidden');
         document.querySelectorAll('.btn-delete').forEach(b => b.classList.remove('hidden'));
         document.querySelectorAll('.media-del-btn').forEach(b => b.classList.remove('hidden'));
         document.querySelectorAll('.rule-text').forEach(i => i.readOnly = false);
@@ -138,10 +138,10 @@
 
     function changeCreds() {
         const c = getCreds();
-        const au = prompt("New Admin Username:", c.adminU);
-        const ap = prompt("New Admin Password:", c.adminP);
-        const uu = prompt("New User Username:", c.userU);
-        const up = prompt("New User Password:", c.userP);
+        const au = prompt("Admin User:", c.adminU);
+        const ap = prompt("Admin Pass:", c.adminP);
+        const uu = prompt("User User:", c.userU);
+        const up = prompt("User Pass:", c.userP);
         if(au && ap && uu && up) {
             storage.setItem('siteCreds', JSON.stringify({ adminU:au, adminP:ap, userU:uu, userP:up }));
             alert("विवरण सुरक्षित भयो!");
@@ -162,15 +162,15 @@
         const li = document.createElement('li');
         li.className = "rule-item";
         li.innerHTML = `
-            <input type="text" class="rule-text" value="${text}" placeholder="नयाँ नियम यहाँ लेख्नुहोस्..." ${isEdit ? '' : 'readonly'}>
+            <input type="text" class="rule-text" value="${text}" placeholder="नियम लेख्नुहोस्..." ${isEdit ? '' : 'readonly'}>
             <button class="btn btn-delete ${isEdit ? '' : 'hidden'}" onclick="this.parentElement.remove()">हटाउनुहोस्</button>
         `;
         document.getElementById('rules-list').appendChild(li);
     }
 
     function addMember(type) {
-        const n = prompt("नाम लेख्नुहोस्:");
-        const p = prompt("पद लेख्नुहोस्:");
+        const n = prompt("नाम:");
+        const p = prompt("पद:");
         if(!n) return;
         const fIn = document.createElement('input'); fIn.type='file'; fIn.accept='image/*';
         fIn.onchange = function() {
@@ -196,10 +196,9 @@
             let h = `<div class="media-box">`;
             if(type==='img') h += `<img src="${e.target.result}">`;
             else if(type==='vid') h += `<video src="${e.target.result}" controls></video>`;
-            else if(type==='aud') h += `<div style="width:140px; padding:10px; background:#fff;"><audio src="${e.target.result}" controls style="width:120px;"></audio></div>`;
-            h += `<button class="media-del-btn" onclick="this.parentElement.remove(); savePublicData();">हटाउनुहोस्</button></div>`;
+            else if(type==='aud') h += `<div style="width:140px; background:#fff;"><audio src="${e.target.result}" controls style="width:120px;"></audio></div>`;
+            h += `<button class="media-del-btn ${isEdit ? '' : 'hidden'}" onclick="this.parentElement.remove()">हटाउनुहोस्</button></div>`;
             document.getElementById('gallery-display').insertAdjacentHTML('beforeend', h);
-            savePublicData();
         };
         r.readAsDataURL(input.files[0]);
     }
@@ -209,40 +208,44 @@
         document.getElementById('pdf-list').insertAdjacentHTML('beforeend', h);
     }
 
+    // एडमिनले सेभ गरेपछि मात्र सबै डाटा पब्लिक हुन्छ
     function confirmSave() {
-        savePublicData();
-        alert("सबै कुरा सुरक्षित गरियो!");
+        const data = {
+            grandma: document.getElementById('grandma-main').src,
+            rules: Array.from(document.querySelectorAll('.rule-text')).map(i => i.value),
+            leaders: document.getElementById('leader-list').innerHTML,
+            members: document.getElementById('member-list').innerHTML,
+            pdf: document.getElementById('pdf-list').innerHTML,
+            gallery: document.getElementById('gallery-display').innerHTML
+        };
+        storage.setItem('public_site_data', JSON.stringify(data));
+        alert("बधाई छ! तपाईँले गरेका सबै परिवर्तनहरू सुरक्षित भए र अब युजरले पनि देख्नेछन्।");
         location.reload();
-    }
-
-    function savePublicData() {
-        storage.setItem('p_grandma', document.getElementById('grandma-main').src);
-        const rules = Array.from(document.querySelectorAll('.rule-text')).map(i => i.value);
-        storage.setItem('p_rules_json', JSON.stringify(rules));
-        storage.setItem('p_leaders', document.getElementById('leader-list').innerHTML);
-        storage.setItem('p_members', document.getElementById('member-list').innerHTML);
-        storage.setItem('p_pdf', document.getElementById('pdf-list').innerHTML);
-        storage.setItem('p_gallery', document.getElementById('gallery-display').innerHTML);
     }
 
     window.onload = function() {
         const role = storage.getItem('role');
-        const gImg = storage.getItem('p_grandma');
-        if(gImg) { document.getElementById('grandma-login').src = gImg; document.getElementById('grandma-main').src = gImg; }
+        const rawData = storage.getItem('public_site_data');
         
-        const rules = JSON.parse(storage.getItem('p_rules_json') || '[]');
-        if(rules.length) rules.forEach(r => addRuleLine(r)); else addRuleLine("नियम १...");
-
-        document.getElementById('leader-list').innerHTML = storage.getItem('p_leaders') || "";
-        document.getElementById('member-list').innerHTML = storage.getItem('p_members') || "";
-        document.getElementById('pdf-list').innerHTML = storage.getItem('p_pdf') || "";
-        document.getElementById('gallery-display').innerHTML = storage.getItem('p_gallery') || "";
+        if(rawData) {
+            const d = JSON.parse(rawData);
+            document.getElementById('grandma-main').src = d.grandma;
+            document.getElementById('grandma-login').src = d.grandma;
+            document.getElementById('leader-list').innerHTML = d.leaders;
+            document.getElementById('member-list').innerHTML = d.members;
+            document.getElementById('pdf-list').innerHTML = d.pdf;
+            document.getElementById('gallery-display').innerHTML = d.gallery;
+            if(d.rules.length) d.rules.forEach(r => addRuleLine(r));
+        } else {
+            addRuleLine("नियम १...");
+        }
 
         if(role) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
             if(role === 'admin') {
                 document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('media-upload-tools').classList.remove('hidden');
                 document.getElementById('main-grandma-div').onclick = () => { if(isEdit) document.getElementById('grandma-upload').click(); };
             }
         }
