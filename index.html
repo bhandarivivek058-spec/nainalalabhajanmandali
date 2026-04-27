@@ -9,11 +9,12 @@
         body { font-family: 'Arial', sans-serif; background-color: var(--bg); margin: 0; text-align: center; }
         .hidden { display: none; }
         header { background: var(--orange); color: white; padding: 20px; border-bottom: 5px solid var(--gold); position: relative; }
-        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #fff; cursor: pointer; }
+        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #fff; position: relative; }
         .profile-circle img { width: 100%; height: 100%; object-fit: cover; }
         section { background: white; margin: 15px auto; padding: 20px; width: 90%; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .section-title { background: var(--gold); padding: 8px; margin-bottom: 15px; font-weight: bold; border-radius: 5px; }
         
+        /* नियमको नेपाली नम्बरिङ */
         #rules-list { counter-reset: rule-counter; text-align: left; list-style: none; padding: 0; }
         .rule-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; gap: 10px; }
         .rule-item::before { 
@@ -21,7 +22,7 @@
             content: counter(rule-counter, devanagari) ". "; 
             font-weight: bold; min-width: 25px;
         }
-        .rule-text { flex-grow: 1; border: none; outline: none; font-size: 16px; background: transparent; padding: 5px; width: 70%; }
+        .rule-text { flex-grow: 1; border: none; outline: none; font-size: 16px; background: transparent; padding: 5px; width: 70%; color: #333; }
 
         .member-card { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; }
         .member-info { display: flex; align-items: center; gap: 15px; text-align: left; }
@@ -35,8 +36,6 @@
         .media-box { position: relative; border: 2px solid var(--gold); border-radius: 8px; overflow: hidden; background: #000; padding: 5px; }
         .media-box img, .media-box video { width: 140px; display: block; border-radius: 5px; }
         .media-del-btn { background: red; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 5px; font-size: 10px; margin-top: 5px; }
-        
-        .pdf-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin-bottom: 5px; border-left: 5px solid var(--red); border-radius: 4px; text-align: left; }
     </style>
 </head>
 <body>
@@ -52,10 +51,11 @@
 <div id="main-content" class="hidden">
     <header>
         <button class="btn btn-logout" onclick="logout()">Logout</button>
-        <div class="profile-circle" id="main-grandma-div">
+        <div class="profile-circle">
             <img id="grandma-main" src="https://via.placeholder.com/150">
         </div>
-        <input type="file" id="grandma-upload" class="hidden" onchange="changeGrandmaPhoto(this)">
+        <button id="change-photo-btn" class="btn hidden" style="background:white; color:black; font-size:10px; padding:4px; margin-top:-10px;" onclick="document.getElementById('grandma-upload').click()">हजुरआमाको फोटो फेर्नुहोस्</button>
+        <input type="file" id="grandma-upload" class="hidden" accept="image/*" onchange="changeGrandmaPhoto(this)">
         <h1>नैनकला भजन मण्डली</h1>
         <p>गोदावरी-१, अत्तरिया, कैलाली</p>
     </header>
@@ -68,26 +68,14 @@
             <button class="btn btn-add" onclick="addRuleLine()">नयाँ नियम +</button>
             <button class="btn btn-add" onclick="addMember('leader')">पदाधिकारी +</button>
             <button class="btn btn-add" onclick="addMember('member')">सदस्य +</button>
-            <button class="btn btn-add" onclick="document.getElementById('pdf-in').click()">PDF कार्यक्रम +</button>
+            <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('img-in').click()">मिडिया +</button>
         </div>
-        <input type="file" id="pdf-in" accept="application/pdf" class="hidden" onchange="upPdf(this)">
+        <input type="file" id="img-in" accept="image/*,video/*,audio/*" class="hidden" onchange="upMedia(this)">
     </div>
 
     <section><div class="section-title">आचारसंहिता</div><ul id="rules-list"></ul></section>
-    <section><div class="section-title">कार्यक्रमहरू (PDF)</div><div id="pdf-list"></div></section>
     <section><div class="section-title">पदाधिकारी तथा सदस्यहरू</div><div id="leader-list"></div><div id="member-list"></div></section>
-    <section>
-        <div class="section-title">मिडिया ग्यालरी</div>
-        <div id="media-tools" class="hidden" style="margin-bottom:15px;">
-            <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('img-in').click()">फोटो +</button>
-            <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('vid-in').click()">भिडियो +</button>
-            <button class="btn btn-save" style="background:#6f42c1" onclick="document.getElementById('aud-in').click()">अडियो +</button>
-        </div>
-        <input type="file" id="img-in" accept="image/*" class="hidden" onchange="upMedia(this, 'img')">
-        <input type="file" id="vid-in" accept="video/*" class="hidden" onchange="upMedia(this, 'vid')">
-        <input type="file" id="aud-in" accept="audio/*" class="hidden" onchange="upMedia(this, 'aud')">
-        <div id="gallery-display"></div>
-    </section>
+    <section><div class="section-title">मिडिया ग्यालरी</div><div id="gallery-display"></div></section>
 </div>
 
 <script>
@@ -107,7 +95,7 @@
         document.getElementById('edit-btn').classList.add('hidden');
         document.getElementById('save-btn').classList.remove('hidden');
         document.getElementById('edit-tools').classList.remove('hidden');
-        document.getElementById('media-tools').classList.remove('hidden');
+        document.getElementById('change-photo-btn').classList.remove('hidden');
         document.querySelectorAll('.btn-delete, .media-del-btn').forEach(b => b.classList.remove('hidden'));
         document.querySelectorAll('.rule-text').forEach(i => i.readOnly = false);
     }
@@ -141,43 +129,39 @@
         }; fIn.click();
     }
 
-    function upMedia(input, type) {
+    function upMedia(input) {
+        const file = input.files[0];
         const r = new FileReader();
         r.onload = e => {
             let h = `<div class="media-box">`;
-            if(type==='img') h += `<img src="${e.target.result}">`;
-            else if(type==='vid') h += `<video src="${e.target.result}" controls></video>`;
-            else if(type==='aud') h += `<div style="width:140px; background:#fff;"><audio src="${e.target.result}" controls style="width:120px;"></audio></div>`;
+            if(file.type.startsWith('image')) h += `<img src="${e.target.result}">`;
+            else if(file.type.startsWith('video')) h += `<video src="${e.target.result}" controls></video>`;
             h += `<button class="media-del-btn" onclick="this.parentElement.remove()">हटाउनुहोस्</button></div>`;
             document.getElementById('gallery-display').insertAdjacentHTML('beforeend', h);
-        }; r.readAsDataURL(input.files[0]);
+        };
+        r.readAsDataURL(file);
     }
 
-    function upPdf(input) {
-        const h = `<div class="pdf-item">📄 ${input.files[0].name} <button class="btn btn-delete" onclick="this.parentElement.remove()">हटाउनुहोस्</button></div>`;
-        document.getElementById('pdf-list').insertAdjacentHTML('beforeend', h);
-    }
-
-    // यही मुख्य फङ्सन हो जसले सबै डाटालाई कोडभित्र स्थायी बनाउँछ
     function exportFullCode() {
-        // नियमहरूलाई स्थायी रूपमा भ्यालुमा सेट गर्ने
+        // डाटालाई कोडभित्र स्थायी रूपमा 'Embed' गर्ने
+        document.getElementById('grandma-main').setAttribute('src', document.getElementById('grandma-main').src);
+        document.getElementById('grandma-login').setAttribute('src', document.getElementById('grandma-main').src);
         document.querySelectorAll('.rule-text').forEach(input => input.setAttribute('value', input.value));
         
-        // इडिट मोडका सबै कुरा लुकाउने ताकि युजरले नदेखून्
+        // एडमिन बटनहरू लुकाउने
         document.getElementById('edit-btn').classList.remove('hidden');
         document.getElementById('save-btn').classList.add('hidden');
         document.getElementById('edit-tools').classList.add('hidden');
-        document.getElementById('media-tools').classList.add('hidden');
+        document.getElementById('change-photo-btn').classList.add('hidden');
         document.querySelectorAll('.btn-delete, .media-del-btn').forEach(b => b.classList.add('hidden'));
 
-        // पूरा कोड जेनेरेट गर्ने
         const fullHtml = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
         const blob = new Blob([fullHtml], {type: "text/html"});
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
         a.download = "index.html"; 
         a.click();
-        alert("तपाईँको नयाँ index.html डाउनलोड भयो। अब यसलाई GitHub मा अपलोड गरिदिनुहोस्!");
+        alert("तपाईँको नयाँ index.html फाइल डाउनलोड भयो। अब यसलाई GitHub मा अपलोड गर्नुहोस्!");
         location.reload();
     }
 
@@ -186,12 +170,9 @@
         if(role) {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
-            if(role === 'admin') {
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('main-grandma-div').onclick = () => { if(isEdit) document.getElementById('grandma-upload').click(); };
-            }
+            if(role === 'admin') document.getElementById('admin-panel').classList.remove('hidden');
         }
-        if(document.getElementById('rules-list').children.length === 0) addRuleLine("नयाँ नियम थप्नुहोस्...");
+        if(document.getElementById('rules-list').children.length === 0) addRuleLine("नियम यहाँ लेख्नुहोस्...");
     };
 </script>
 </body>
