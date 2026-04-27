@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ne">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>नैनाकला भजन मण्डली</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <style>
+        :root { --orange: #FF9933; --red: #FF0000; --gold: #FFD700; --bg: #FFF5E1; }
+        body { font-family: 'Arial', 'Sans-Serif', sans-serif; background-color: var(--bg); margin: 0; text-align: center; }
+        .hidden { display: none; }
+        .symbol { font-size: 24px; color: var(--red); padding: 10px; }
+        header { background: var(--orange); color: white; padding: 20px; border-bottom: 5px solid var(--gold); }
+        .profile-circle { width: 140px; height: 140px; margin: 10px auto; border-radius: 50%; border: 4px solid white; overflow: hidden; background: #ccc; cursor: pointer; }
+        .profile-circle img { width: 100%; height: 100%; object-fit: cover; }
+        section { background: white; margin: 15px auto; padding: 20px; width: 90%; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .section-title { background: var(--gold); padding: 8px; margin-bottom: 15px; font-weight: bold; border-radius: 5px; }
+        .rule-row { display: flex; align-items: center; margin-bottom: 8px; text-align: left; }
+        .rule-input { width: 85%; padding: 5px; border: none; font-size: 16px; outline: none; }
+        .member-card { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; position: relative; }
+        #member-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; color: white; }
+        .btn-add { background: #28a745; }
+        .btn-save { background: #007bff; }
+        .pdf-item { background: #f9f9f9; padding: 8px; margin-bottom: 5px; border-left: 4px solid var(--red); text-align: left; }
+    </style>
+</head>
+<body>
+
+<div id="login-screen" style="padding:100px; background: var(--orange); color: white;">
+    <div class="symbol">ॐ 卐 🔱</div>
+    <h2>लगइन गर्नुहोस्</h2>
+    <input type="text" id="username" placeholder="Username" style="padding:10px; margin:5px;"><br>
+    <input type="password" id="password" placeholder="Password" style="padding:10px; margin:5px;"><br>
+    <button class="btn btn-save" onclick="checkLogin()">भित्र जानुहोस्</button>
+</div>
+
+<div id="main-content" class="hidden">
+    <div class="symbol">ॐ 卐 🔱 🪔 🔔</div>
+    <header>
+        <div class="profile-circle" onclick="document.getElementById('gm-in').click()">
+            <img id="gm-img" src="https://via.placeholder.com/150">
+        </div>
+        <input type="file" id="gm-in" class="hidden" onchange="upImg(this, 'gm-img')">
+        <h1>नैनाकला भजन मण्डली</h1>
+        <p>गोदावरी-१, अत्तरिया, कैलाली (२०८३)</p>
+    </header>
+
+    <div id="admin-panel" class="hidden" style="background:white; padding:10px; border:2px solid red;">
+        <button class="btn btn-add" onclick="addP('leader')">पदाधिकारी +</button>
+        <button class="btn btn-add" onclick="addP('member')">सदस्य +</button>
+        <button class="btn btn-save" onclick="alert('सुरक्षित गरियो!')">Save All</button>
+    </div>
+
+    <section>
+        <div class="section-title">आचारसंहिता</div>
+        <div id="rules">
+            <div class="rule-row">१. <input type="text" id="rule-1" class="rule-input" onkeydown="addR(event, 1)" placeholder="यहाँ लेख्नुहोस्..."></div>
+        </div>
+    </section>
+
+    <section>
+        <div class="section-title">कार्यक्रमहरू (PDF)</div>
+        <div id="pdf-list"></div>
+        <button class="btn btn-add" onclick="document.getElementById('pdf-in').click()">PDF थप्नुहोस्</button>
+        <input type="file" id="pdf-in" accept="application/pdf" class="hidden" onchange="addPdf(this)">
+    </section>
+
+    <section>
+        <div class="section-title">पदाधिकारी तथा सदस्य</div>
+        <div id="leader-list"></div>
+        <div id="member-list"></div>
+    </section>
+
+    <section>
+        <div class="section-title">मिडिया</div>
+        <div style="display:flex; justify-content: space-around;">
+            <button onclick="document.getElementById('f-in').click()">फोटो</button>
+            <button onclick="document.getElementById('v-in').click()">भिडियो</button>
+            <button onclick="document.getElementById('a-in').click()">अडियो</button>
+        </div>
+        <input type="file" id="f-in" multiple class="hidden">
+        <input type="file" id="v-in" multiple class="hidden">
+        <input type="file" id="a-in" multiple class="hidden">
+    </section>
+    
+    <div class="symbol">🔱 जय श्री राम 🔱</div>
+</div>
+
+<script>
+    let role = "";
+    const nepNum = ['०','१','२','३','४','५','६','७','८','९'];
+    function toN(n) { return n.toString().split('').map(d => nepNum[d]).join(''); }
+
+    function checkLogin() {
+        const u = document.getElementById('username').value;
+        const p = document.getElementById('password').value;
+        if(u==='admin' && p==='admin123') { role="admin"; start(); }
+        else if(u==='user' && p==='user123') { role="user"; start(); }
+        else alert("मिलेन!");
+    }
+
+    function start() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+        if(role==='admin') document.getElementById('admin-panel').classList.remove('hidden');
+    }
+
+    function upImg(input, id) {
+        if (input.files && input.files[0]) {
+            const r = new FileReader();
+            r.onload = e => document.getElementById(id).src = e.target.result;
+            r.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function addR(e, c) {
+        if (e.key === 'Enter' && role === 'admin') {
+            const next = c + 1;
+            const d = document.createElement('div');
+            d.className = "rule-row";
+            d.innerHTML = `${toN(next)}. <input type="text" id="rule-${next}" class="rule-input" onkeydown="addR(event, ${next})">`;
+            document.getElementById('rules').appendChild(d);
+            setTimeout(() => document.getElementById(`rule-${next}`).focus(), 10);
+        }
+    }
+
+    function addP(t) {
+        const container = t === 'leader' ? 'leader-list' : 'member-list';
+        const id = 'p' + Date.now();
+        const h = `<div class="member-card">
+            <img id="${id}" src="https://via.placeholder.com/80" style="width:60px;" onclick="document.getElementById('${id}-in').click()">
+            <input type="file" id="${id}-in" class="hidden" onchange="upImg(this, '${id}')">
+            <div style="display:flex; flex-direction:column;">
+                <input type="text" placeholder="नाम">
+                <input type="text" placeholder="पद">
+            </div>
+        </div>`;
+        document.getElementById(container).insertAdjacentHTML('beforeend', h);
+    }
+
+    function addPdf(input) {
+        if (input.files[0]) {
+            const d = document.createElement('div');
+            d.className = "pdf-item";
+            d.innerText = "📄 " + input.files[0].name;
+            document.getElementById('pdf-list').appendChild(d);
+        }
+    }
+</script>
+</body>
+</html>
